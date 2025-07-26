@@ -1,11 +1,15 @@
-import SearchBar from "../SearchBar/SearchBar";
+
+import { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
+import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import MovieModal from "../MovieModal/MovieModal";
 import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -13,17 +17,21 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading } = useQuery<Movie[]>({
+  const { data, isLoading, isError } = useQuery<Movie[]>({
     queryKey: ["movie", query],
     queryFn: () => fetchMovies(query),
     enabled: query !== "",
   });
   const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);
+    
   };
   useEffect(() => {
     if (data) {
       setMovies(data);
+       if (data.length === 0) {
+        toast("No movies found for your request.");
+      }
     }
   }, [data]);
   const closeModal = () => {
@@ -45,8 +53,9 @@ export default function App() {
       {isModalOpen && selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
-      {isLoading && (<Loader />)}
-      
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
+      <Toaster position="top-left" />
     </>
   );
 }
