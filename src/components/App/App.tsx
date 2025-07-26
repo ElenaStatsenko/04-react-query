@@ -1,8 +1,8 @@
-
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import ReactPaginate from "react-paginate";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
 import SearchBar from "../SearchBar/SearchBar";
@@ -10,26 +10,30 @@ import MovieGrid from "../MovieGrid/MovieGrid";
 import MovieModal from "../MovieModal/MovieModal";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import css from "./App.module.css";
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const { data, isLoading, isError } = useQuery<Movie[]>({
-    queryKey: ["movie", query],
-    queryFn: () => fetchMovies(query),
+    queryKey: ["movie", query, currentPage],
+    queryFn: () => fetchMovies(query, currentPage),
     enabled: query !== "",
+    placeholderData: keepPreviousData,
   });
+
+  const totalPages = data?.nbPages ?? 0;
   const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);
-    
   };
   useEffect(() => {
     if (data) {
       setMovies(data);
-       if (data.length === 0) {
+      if (data.length === 0) {
         toast("No movies found for your request.");
       }
     }
@@ -53,6 +57,17 @@ export default function App() {
       {isModalOpen && selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
+      <ReactPaginate
+        pageCount={totalPages}
+        pageRangeDisplayed={5}
+        marginPagesDisplayed={1}
+        onPageChange={({ selected }) => setPage(selected + 1)}
+        forcePage={page - 1}
+        containerClassName={css.pagination}
+        activeClassName={css.active}
+        nextLabel="→"
+        previousLabel="←"
+      />
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
       <Toaster position="top-left" />
