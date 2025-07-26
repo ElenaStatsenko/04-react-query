@@ -1,4 +1,3 @@
-
 import SearchBar from "../SearchBar/SearchBar";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -6,6 +5,7 @@ import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import MovieModal from "../MovieModal/MovieModal";
+import Loader from "../Loader/Loader";
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -13,15 +13,15 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data } = useQuery <Movie[]>({
+  const { data, isLoading } = useQuery<Movie[]>({
     queryKey: ["movie", query],
     queryFn: () => fetchMovies(query),
     enabled: query !== "",
   });
-  const handlerSearchForm = async (newQuery: string) => {
+  const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);
   };
- useEffect(() => {
+  useEffect(() => {
     if (data) {
       setMovies(data);
     }
@@ -39,10 +39,14 @@ export default function App() {
   return (
     <>
       <SearchBar onSubmit={handlerSearchForm} />
-      {movies.length > 0 && <MovieGrid movies={movies} onSelect={openModal}  />}
+
+      {movies.length > 0 && <MovieGrid movies={movies} onSelect={openModal} />}
+
       {isModalOpen && selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
+      {isLoading && (<Loader />)}
+      
     </>
   );
 }
