@@ -1,7 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ReactPaginate from "react-paginate";
 import { keepPreviousData } from "@tanstack/react-query";
 import { fetchMovies } from "../../services/movieService";
@@ -14,7 +14,6 @@ import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import css from "./App.module.css";
 
 export default function App() {
-  const [movies, setMovies] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,18 +27,16 @@ export default function App() {
   });
 
   const totalPages = data?.total_pages ?? 0;
+
+  if (data && !isLoading && data.results.length === 0) {
+    toast("No movies found for your request.");
+  }
+
   const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);
     setPage(1);
   };
-  useEffect(() => {
-    if (data) {
-      setMovies(data.results);
-      if (data && data.results.length === 0) {
-        toast("No movies found for your request.");
-      }
-    }
-  }, [data]);
+
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedMovie(null);
@@ -67,9 +64,9 @@ export default function App() {
           previousLabel="←"
         />
       )}
-
-      {movies.length > 0 && <MovieGrid movies={movies} onSelect={openModal} />}
-
+      {data?.results?.length ? (
+        <MovieGrid movies={data.results} onSelect={openModal} />
+      ) : null}
       {isModalOpen && selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
