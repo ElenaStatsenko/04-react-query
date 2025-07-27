@@ -6,4 +6,7 @@ export interface Movie {
   overview: string;
   release_date: string;
   vote_average: number;
+  total_pages:number;
+  page: number;
+  total_results: number;
 }
