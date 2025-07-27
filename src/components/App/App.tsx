@@ -1,11 +1,12 @@
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactPaginate from "react-paginate";
 import { keepPreviousData } from "@tanstack/react-query";
 import { fetchMovies } from "../../services/movieService";
-import type { MovieResponse, Movie } from "../../types/movie";
+import type { Movie } from "../../types/movie";
+import type { MovieResponse } from "../../services/movieService";
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import MovieModal from "../MovieModal/MovieModal";
@@ -20,7 +21,7 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const { data, isLoading, isError, isSuccess } = useQuery<MovieResponse>({
-    queryKey: ["movie", query, page],
+    queryKey: ["movies", query, page],
     queryFn: () => fetchMovies(query, page),
     enabled: query !== "",
     placeholderData: keepPreviousData,
@@ -28,9 +29,11 @@ export default function App() {
 
   const totalPages = data?.total_pages ?? 0;
 
-  if (data && !isLoading && data.results.length === 0) {
-    toast("No movies found for your request.");
-  }
+  useEffect(() => {
+    if (isSuccess && data?.results?.length === 0) {
+      toast("No movies found for your request.");
+    }
+  }, [isSuccess, data?.results?.length]);
 
   const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);

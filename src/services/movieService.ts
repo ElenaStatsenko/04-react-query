@@ -1,6 +1,12 @@
 import axios from "axios";
 
-import type { MovieResponse } from "../types/movie";
+import type { Movie} from "../types/movie";
+
+export interface MovieResponse {
+  results: Movie[];
+  total_pages: number;
+}
+
 
 const myKey = import.meta.env.VITE_API_KEY;
 const tmdb = axios.create({
