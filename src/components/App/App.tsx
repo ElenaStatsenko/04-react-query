@@ -15,13 +15,13 @@ import css from "./App.module.css";
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError } = useQuery<Movie[]>({
-    queryKey: ["movie", query, currentPage],
-    queryFn: () => fetchMovies(query, currentPage),
+  const { data, isLoading, isError, isSuccess } = useQuery<Movie[]>({
+    queryKey: ["movie", query, page],
+    queryFn: () => fetchMovies(query, page),
     enabled: query !== "",
     placeholderData: keepPreviousData,
   });
@@ -29,6 +29,7 @@ export default function App() {
   const totalPages = data?.nbPages ?? 0;
   const handlerSearchForm = (newQuery: string) => {
     setQuery(newQuery);
+    setPage(1)
   };
   useEffect(() => {
     if (data) {
@@ -57,7 +58,7 @@ export default function App() {
       {isModalOpen && selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
-      <ReactPaginate
+        {isSuccess && totalPages > 1 && (<ReactPaginate
         pageCount={totalPages}
         pageRangeDisplayed={5}
         marginPagesDisplayed={1}
@@ -67,7 +68,7 @@ export default function App() {
         activeClassName={css.active}
         nextLabel="→"
         previousLabel="←"
-      />
+      />)}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
       <Toaster position="top-left" />
