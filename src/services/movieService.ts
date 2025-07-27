@@ -1,9 +1,7 @@
 import axios from "axios";
 
-import type { Movie } from "../types/movie";
-interface MovieSearchResponse {
-  results: Movie[];
-}
+import type { MovieResponse } from "../types/movie";
+
 const myKey = import.meta.env.VITE_API_KEY;
 const tmdb = axios.create({
   baseURL: "https://api.themoviedb.org/3",
@@ -12,9 +10,11 @@ const tmdb = axios.create({
     accept: "application/json",
   },
 });
-export const fetchMovies = async (data: string): Promise<Movie[]> => {
-  const response = await tmdb.get<MovieSearchResponse>("/search/movie", {
-    params: { query: data },
+
+export const fetchMovies = async (query: string,
+  page: number = 1): Promise<MovieResponse> => {
+  const response = await tmdb.get<MovieResponse>("/search/movie", {
+    params: { query, page},
   });
-  return response.data.results;
+  return (response.data);
 };
